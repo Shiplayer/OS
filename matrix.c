@@ -6,7 +6,7 @@
 #include <sys/types.h>
 
 
-key_t key;
+key_t key = 5223;
 size_t size = sizeof(int);
 
 int main(){
@@ -26,9 +26,9 @@ int main(){
 		}
 		printf("shmat is executed\n");
 		for(int *s = shm; *s != NULL; s++)
-			printf("%d", *s);
+			printf("%d\n", *s);
 		*shm = -1;
-		printf("exit (child)");
+		printf("exit (child)\n");
 	} else if(pid != -1){
 		printf("parent\n");
 		int shm_number = shmget(key, size, IPC_CREAT |  0666);
@@ -42,11 +42,12 @@ int main(){
 			perror("shmat parent");
 			exit(1);
 		}
-		printf("shmat (parent)");
+		printf("shmat (parent)\n");
 		int *s = shm;
-		*s++ = 10;
+		scanf("%d", &(*s++));
+		//*s++ = 10;
 		*s = NULL;
-		printf("wait (parent)");
+		printf("wait (parent)\n");
 		while(*shm != -1)
 			sleep(1);
 
