@@ -1,88 +1,105 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <stdio.h>
+#include <sys/wait.h>
+#include <string.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <sys/types.h>
+#include <time.h>
 
-
-key_t key;
-size_t size;
-
-int main(){
-	pid_t pid = fork();
-	if(pid == 0){
-		int n, m;
-		scnaf("%d %d", &n, &m);
-		size = n * m * sizeof(int);
-		int* matrix = (int *)malloc(size);
-		for(int i = 0; i < n; i++)
-			for(int j = 0; j < m; j++)
-				scanf("%d", matrix[i + j * n]);
-	} else if(pid == -1) { 
-		perror("fork");
-		exit(1)
-	}
-	if((pid = fork()) == 0){
-	
-	} else if(pid == -1){
-		perror("fork");
+int main(int argc, char* argv[]){
+	srand(time(NULL));
+	int n = 0;
+	int m = 0;
+	scanf("%d", &n);
+	scanf("%d", &m);
+	int shared_segment_size = (3*n*m+1)*getpagesize();
+	int segment_id = shmget(IPC_PRIVATE,shared_segment_size, IPC_CREAT | IPC_EXCL | S_IRUSR | S_IWUSR);
+	if(segment_id == -1){
+		perror("failed to shmget");
 		exit(1);
 	}
-	if((pid == fork()) == 0){
-
-	} else if(pid == -1){
-		perror("fork");
+	int* shared_memory = (int*) shmat(segment_id,0,0);
+	shared_memory[3*m*n] = 0;
+	pid_t pid_0 = fork();
+	if(pid_0 == -1){
+		perror("fork failed");
 		exit(1);
+	} else if(pid_0 == 0) {
+		while(1){
+			if(shared_memory[3*m*n] == 1){
+				exit(0);
+			}
+			for(int i = 0; i < n; ++i){
+				for(int j = 0; j < m; ++j){
+					shared_memory[2*m*n+i*m+j] = shared_memory[i*m+j] + shared_memory[m*n+i*m+j];
+				}
+			}
+		}
+	} else {
+		pid_t pid_1 = fork();
+		if(pid_1 == -1){
+			perror("fork failed");
+			exit(1);
+		} else if(pid_1 == 0) {
+			while(1){
+				if(shared_memory[3*n*m] == 2){
+					continue;
+				}
+				printf("%d\n", shared_memory[3*n*m]);
+				if(shared_memory[3*n*m] == 1){
+					exit(0);
+				}
+				printf("read one matrix\n");
+				for(int i = 0; i < n; ++i){
+					for(int j = 0; j < m; ++j){
+						int buf = rand()%50;
+						printf("%d ", buf);
+						shared_memory[i*m+j] = buf;
+					}
+					printf("\n");
+				}
+				printf("read other matrix\n");
+				for(int i = 0; i < n; ++i){
+					for(int j = 0; j < m; ++j){
+						int buf = rand()%50;
+						printf("%d ", buf);
+						shared_memory[i*m+j+m*n] = buf;
+                    }
+					printf("\n");
+				}
+				shared_memory[3*n*m] = 2;
+			}
+		}
+		else {
+			while(1){
+				if(shared_memory[3*n*m] != 2){
+					continue;
+				}
+				printf("result:\n");
+				for(int i = 0; i < n; ++i){
+            		for(int j = 0; j < m; ++j){
+                    	printf("%d ", shared_memory[2*m*n+i*m+j]);
+            		}
+                    printf(" \n");
+                }
+				printf("\n\n");
+				if(getchar() == 'q'){
+					shared_memory[m*n*3] = 1;
+					wait(pid_0);
+					wait(pid_1);
+					shmdt(shared_memory);
+					if(shmctl(segment_id, IPC_RMID, 0) == -1){
+						perror("shmctl failed");
+						exit(1);
+					}
+					return 0;
+				}
+				shared_memory[3*m*n] = 0;
+			}
+		}
 	}
 	return 0;
 }
-
-/*int main(){
-	pid_t pid = fork();
-	if(pid == 0){
-		printf("child\n");
-		int shm_number = shmget(key, size, 0666);
-		if(shm_number < 0){
-			perror("shm");
-			exit(1);
-		}
-		printf("shmget is executed\n");
-		int *shm = (int *)shmat(shm_number, NULL, 0);
-		if(shm < 0){
-			perror("shmat");
-			exit(1);
-		}
-		printf("shmat is executed\n");
-		for(int *s = shm; *s != NULL; s++)
-			printf("%d\n", *s);
-		*shm = -1;
-		printf("exit (child)\n");
-	} else if(pid != -1){
-		printf("parent\n");
-		int shm_number = shmget(key, size, IPC_CREAT |  0666);
-		if(shm_number < 0){
-			perror("shm parent");
-			exit(1);
-		}
-		printf("shmget (parent)\n");
-		int *shm = (int *)shmat(shm_number, NULL, 0);
-		if(shm == -1){
-			perror("shmat parent");
-			exit(1);
-		}
-		printf("shmat (parent)\n");
-		int *s = shm;
-		scanf("%d", &(*s++));
-		//*s++ = 10;
-		*s = NULL;
-		printf("wait (parent)\n");
-		while(*shm != -1)
-			sleep(1);
-
-	} else{
-		perror("pid");
-		exit(1);
-	}
-	exit(0);
-}*/
