@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
 int forks = 0;
 
@@ -52,6 +53,8 @@ int pop(struct Node *node){
 	return data;
 }
 
+int test = 0;
+
 void dfs(struct Node *node){
 	int pipefb[2];
 	if(pipe(pipefb) == -1){
@@ -71,6 +74,7 @@ void dfs(struct Node *node){
 					}
 					if(pid == 0){
 						//close(pipefb[0]);
+						test++;
 						printf("parent: %d and child:%d (%d -> %d)\n", getppid(), getpid(), node->vertex, nodes[index]->vertex);
 						dfs(nodes[index]);
 						//wait(0);
@@ -83,13 +87,13 @@ void dfs(struct Node *node){
 			}
 		}
 		close(pipefb[1]);
-		
+
 	} else{
 		wait(0);
 		return forks + 1;
 	}
 }
-	
+
 int main(int argc, char **argv){
 	nullNode = createNode(-1);
 	root = createNode(0);
@@ -111,5 +115,6 @@ int main(int argc, char **argv){
 		dfs(nodes[index]);
 	}
 	wait(0);
+	printf("test = %d\n", test);
 	return 0;
 }
