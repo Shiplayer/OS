@@ -113,9 +113,11 @@ int createPath(char* path){
                     } else
                         return -1;
                 }
+                printf("dir is created\n");
             }
         }
     }
+    printf("methods createPath is finished\n");
     return 0;
 }
 
@@ -124,7 +126,7 @@ int checkToPath(char *toPath){
     if(length == 1){
         return 0;
     }
-    printf("%s", toPath);
+    printf("%s\n", toPath);
     for(int i = length - 1; i >= 0; i--){
         if(toPath[i] == '/'){
             printf("createPath\n");
@@ -135,6 +137,7 @@ int checkToPath(char *toPath){
             break;
         }
     }
+    printf("method checkToPath is finished\n");
     return 1;
 }
 
@@ -156,7 +159,11 @@ int main(int argc, char* argv[]){
     }
     int status;
     struct stat st;
-    status = stat(argv[1], &st);
+    char *from = malloc(strlen(argv[1]) * sizeof(char));
+    strcpy(from, argv[1]);
+    char *to = malloc(strlen(argv[2]) * sizeof(char));
+    strcpy(to, argv[2]);
+    status = stat(from, &st);
     if(status != 0){
         perror("stat returned error");
         exit(1);
@@ -164,21 +171,22 @@ int main(int argc, char* argv[]){
     if(S_ISREG(st.st_mode)){
         printf("is file\n");
         //if(checkToPath(argv[2]) == 0){
-        checkToPath(argv[2]);
-        int len = length(argv[1]) - 1;
-        if(argv[1][len] != '/'){
-            char *fileName = getFileName(argv[1]);
+        checkToPath(to);
+        int len = strlen(to) - 1;
+        if(to[len] == '/'){
+            char *fileName = getFileName(from);
             char *path;
-            path = malloc((strlen(argv[2]) + strlen(fileName) + 1) * sizeof(char));
-            strcpy(path, argv[2]);
+            printf("fileName = %s\n", fileName);
+            path = malloc((strlen(to) + strlen(fileName) + 1) * sizeof(char));
+            strcpy(path, to);
             for(int i = strlen(path), j = 0; i < strlen(path) + strlen(fileName); i++, j++){
                 path[i] = fileName[j];
             }
-            path[strlen(argv[2]) + strlen(fileName)] = '\0';
-            printf("copy_content(%s, %s)\n", argv[1], path);
-            copy_content(argv[1], path);
+            path[strlen(to) + strlen(fileName)] = '\0';
+            printf("copy_content(%s, %s)\n", from, path);
+            copy_content(from, path);
         } else {
-            copy_content(argv[1], argv[2]);
+            copy_content(from, to);
         }
 
     }
