@@ -56,42 +56,42 @@ int pop(struct Node *node){
 int test = 0;
 
 void dfs(struct Node *node){
-	int pipefb[2];
-	if(pipe(pipefb) == -1){
-		perror("pipe");
-		exit(1);
-	}
-	pid_t pid = fork();
-	if(pid == 0){
 		if(node->used != 1){
 			while(node->size > 0){
 				int index = pop(node);
 				if(nodes[index]->used == 0){
+					int buf = 0;
 					int pipefb[2];
-					if(pipe(pipefb[2]) == 1){
+					if(pipe(pipefb) == 1){
 						perror("pipe");
 						exit(EXIT_FAILURE);
 					}
+					int pid = fork();
 					if(pid == 0){
-						//close(pipefb[0]);
-						test++;
+						close(pipefb[0]);
 						printf("parent: %d and child:%d (%d -> %d)\n", getppid(), getpid(), node->vertex, nodes[index]->vertex);
 						dfs(nodes[index]);
+						printf("send from child test = %d\n", test);
+						buf = test + 1;
+						write(pipefb[1], &buf, sizeof(int));
+						close(pipefb[1]);
+						wait(0);
+						exit(0);
 						//wait(0);
 						//write(pipefb[1], forks, sizeof(int));
 					} else{
-						//close(pipefb[1]);
-						//read(pipefb[0], forks, sizeof(int));
+						wait(0);
+						close(pipefb[1]);
+						read(pipefb[0], &buf, sizeof(int));
+						printf("test = %d\n", buf);
+						test += buf;
+						close(pipefb[0]);
 					}
 				}
 			}
 		}
-		close(pipefb[1]);
-
-	} else{
 		wait(0);
-		return forks + 1;
-	}
+		return test;
 }
 
 int main(int argc, char **argv){
@@ -109,11 +109,12 @@ int main(int argc, char **argv){
 		//printf("%d, %d", u, v);
 		push(nodes[u], v);
 	}
-	nodes[1]->used = 1;
+	/*nodes[1]->used = 1;
 	while(nodes[1]->size > 0){
 		int index = pop(nodes[1]);
 		dfs(nodes[index]);
-	}
+	}*/
+	dfs(nodes[1]);
 	wait(0);
 	printf("test = %d\n", test);
 	return 0;
