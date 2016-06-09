@@ -1,4 +1,5 @@
 all: clean tcp_client udp_client
+	make -C ./new
 
 tcp_client:
 	gcc -o tcp_client tcp_client.c -std=c99
@@ -8,3 +9,4 @@ upd_client:
 
 clean:
 	rm -f udp_client tcp_client
+	make clean -C ./new

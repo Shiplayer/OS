@@ -1,6 +1,7 @@
 CFLAGS=-std=c99 -w
 
 all: clean test graph matrix task
+	make -C ./tasks
 
 test: test.o
 	gcc -o $@ -pthread test.o
@@ -19,3 +20,4 @@ task:
 
 clean:
 	rm -f test.o test graph matrix task
+	make clean -C ./tasks
