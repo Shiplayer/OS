@@ -27,7 +27,7 @@ char* getName(char* path){
     if(index == -1){
         return path;
     }
-    for(int i = index, j = 0; i < strlen(path); i++, j++){
+    for(int i = index + 1, j = 0; i < strlen(path); i++, j++){
         name[j] = path[i];
     }
     printf("strlen(path) = %d\n", strlen(path));
@@ -80,12 +80,13 @@ int main(int argc, char* argv[]){
     char *name = getName(argv[1]);
     printf("name of file: %s\n", name);
     int ssize = strlen(name);
-    if((bytes_send = send(new_sd, ssize, sizeof(int), 0)) == -1){
+    printf("ssize = %d\n", ssize);
+    if((bytes_send = send(new_sd, &ssize, sizeof(int), 0)) == -1){
         perror("send failed");
         exit(1);
     }
 	printf("Send %d bytes, message: %d \n", bytes_send, len);
-    if((bytes_send = send(new_sd, name, strlen(name), 0)) == -1){
+    if((bytes_send = send(new_sd, name, strlen(name) * sizeof(char), 0)) == -1){
         perror("send failed");
         exit(1);
     }

@@ -8,6 +8,7 @@
 #include <sys/ipc.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>
 
 int main(int argc, char **argv){
 	char message[4096];
@@ -68,7 +69,7 @@ int main(int argc, char **argv){
 			}
 			default:{
 				sleep(1);
-				kill(pid_0);
+				kill(pid_0, SIGKILL);
 			}
 		}
 	}
