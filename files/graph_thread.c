@@ -106,14 +106,8 @@ int main(int argc, char **argv){
 		nodes[i] = createNode(i);
 	}
 	while(fscanf(fb, "%d %d", &u, &v) != EOF){
-		//printf("%d, %d", u, v);
 		push(nodes[u], v);
 	}
-	/*nodes[1]->used = 1;
-	while(nodes[1]->size > 0){
-		int index = pop(nodes[1]);
-		dfs(nodes[index]);
-	}*/
 	dfs(nodes[1]);
 	wait(0);
 	printf("test = %d\n", test);
