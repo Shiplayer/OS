@@ -1,7 +1,7 @@
-all: clean tcp_client
+all: clean tcp_client_new
 
-tcp_client:
-	gcc -o tcp_client tcp_client.c -std=c99
+tcp_client_new:
+	gcc -o $@ $@.c -std=c99 -w
 
 clean:
-	rm -f tcp_client
+	rm -f tcp_client_new

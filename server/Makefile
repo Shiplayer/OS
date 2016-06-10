@@ -1,10 +1,10 @@
 all: clean tcp_server udp_server
 
 tcp_server:
-	gcc -o tcp_server tcp_server.c -std=c99
+	gcc -o $@ $@.c -std=c99 -w
 
 upd_server:
-	gcc -o udp_server udp_server.c -std=c99
+	gcc -o $@ $@.c -std=c99 -w
 
 clean:
 	rm -f udp_server tcp_server

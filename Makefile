@@ -1,5 +1,4 @@
-all: clean
-	task
+all: clean task
 	make -C ./client
 	make -C ./server
 	make -C ./files
