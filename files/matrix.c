@@ -32,11 +32,15 @@ int main(int argc, char* argv[]){
 			if(shared_memory[3*m*n] == 1){
 				exit(0);
 			}
+			if(shared_memory[3*m*n] != 2)
+				continue;
+
 			for(int i = 0; i < n; ++i){
 				for(int j = 0; j < m; ++j){
 					shared_memory[2*m*n+i*m+j] = shared_memory[i*m+j] + shared_memory[m*n+i*m+j];
 				}
 			}
+			shared_memory[3*n*m] = 3;
 		}
 	} else {
 		pid_t pid_1 = fork();
@@ -45,12 +49,11 @@ int main(int argc, char* argv[]){
 			exit(1);
 		} else if(pid_1 == 0) {
 			while(1){
-				if(shared_memory[3*n*m] == 2){
-					continue;
-				}
-				printf("%d\n", shared_memory[3*n*m]);
 				if(shared_memory[3*n*m] == 1){
 					exit(0);
+				}
+				if(shared_memory[3*n*m] != 0){
+					continue;
 				}
 				printf("read one matrix\n");
 				for(int i = 0; i < n; ++i){
@@ -75,7 +78,7 @@ int main(int argc, char* argv[]){
 		}
 		else {
 			while(1){
-				if(shared_memory[3*n*m] != 2){
+				if(shared_memory[3*n*m] != 3){
 					continue;
 				}
 				printf("result:\n");
